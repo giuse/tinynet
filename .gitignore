@@ -1,0 +1,14 @@
+.cache
+build
+dist
+*.egg-info
+MANIFEST
+*.log
+*.patch
+*.diff
+
+*.pyc
+.pypirc
+dist/
+Pipfile
+Pipfile.lock
