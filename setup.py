@@ -1,8 +1,7 @@
 from distutils.core import setup
-from subprocess import run, PIPE
 
-version = run(['git', 'describe'], stdout=PIPE).stdout.decode('utf8').strip()
-with open('README.md', encoding='utf-8') as f: long_description = f.read()
+with open('VERSION',    'r', encoding='utf-8') as f: version = f.read().strip()
+with open('README.rst', 'r', encoding='utf-8') as f: long_description = f.read()
 
 setup(
   name              = 'tinynet',
