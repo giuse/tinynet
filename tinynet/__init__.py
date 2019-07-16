@@ -1,1 +1,1 @@
-from tinynet.RNN1L import RNN1L
+from tinynet.rnn1l import RNN1L
