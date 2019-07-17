@@ -4,9 +4,7 @@ A tiny neural network library
 
 ## No training
 
-This library provides no training algorithm. Use in conjunction with a
-black box search algorithm such as [CMA-ES](https://github.com/CMA-ES/pycma)
-to train the weights in a neuroevolution framework.
+This library provides no training algorithm. You can easily set up a neuroevolution framework by including any black-box search algorithm, from [RWG](https://www.bioinf.jku.at/publications/older/ch9.pdf) (see example below) to [CMA-ES](https://github.com/CMA-ES/pycma).
 
 ## Installation
 
@@ -17,59 +15,72 @@ to train the weights in a neuroevolution framework.
 ```python
 from tinynet import RNN1L
 import numpy as np
-ninputs, noutputs = [3, 2]
-net = RNN1L(ninputs, noutputs)
-net.set_weights(np.random.rand(net.nweights()))
-out = net.activate(np.zeros(ninputs))
-assert len(out) == noutputs
-assert len(net.state) == ninputs + 1 + noutputs # input, bias, recursion
+net_struct = [3, 5, 2]
+net = RNN(net_struct) # try also FFNN
+net.set_weights(np.random.randn(net.nweights))
+out = net.activate(np.zeros(net.ninputs))
+assert len(out) == net.noutputs
+assert len(net.state) == net.ninputs + 1 + net.noutputs # input, bias, recursion
 ```
 
-## Neuroevolution application
+## Neuroevolution application on the OpenAI Gym
+
+Check out [this GitHub gist](https://gist.github.com/giuse/3d16c947259173d571cf82e28a2f7a7e) to run the Bipedal Walker using pre-trained weights.
+
+The example below tackles the CartPole from scratch using RWG.
+
 
 ```python
-
 import numpy as np
-from tinynet import RNN1L
-import gym
-
-# Get pre-trained weights
-pre_trained_weights = raise "Check out https://gist.github.com/giuse/3d16c947259173d571cf82e28a2f7a7e"
+import tinynet
+import gym # just `pip install gym`
 
 # Environment setup
-env = gym.make("BipedalWalker-v2")
+env = gym.make("CartPole-v1")
 # env = gym.wrappers.Monitor(env, 'video', force = True) # Uncomment to save video
-nactions = env.action_space.shape[0]
+
+# Get input size and output size from the environment
+nactions = env.action_space.n
 ninputs = env.reset().size
+# Hidden layers are arbitrarily added
+# hidden = [20, 10, 20]
+hidden = [] # ... but unnecessary with the CartPole
+net_struct = [ninputs, *hidden, nactions]
 
-# Network setup
-net = RNN1L(ninputs, nactions)
-net.set_weights(pre_trained_weights)
+# Network setup is straightforward (defaults: `act_fn=np.tanh, init_weights=None`)
+net = tinynet.FFNN(net_struct) # also try `RNN(net_struct)`
 
-# Gameplay loop
-obs = env.reset()
-score = 0
-done = False
-while not done:
-  env.render()
-  action = net.activate(obs)
-  obs, rew, done, info = env.step(action)
-  score += rew
-print(f"Fitness: {score}")
-env.close()
+# Get random seed for deterministic fitness (for simplicity)
+rseed = np.random.randint(1e10)
+
+# Fitness function: gameplay loop
+def fitness(ind, render=False):
+    env.seed(rseed)  # makes fitness deterministic
+    obs = env.reset()
+    score = 0
+    done = False
+    while not done:
+      if render: env.render()
+      action = net.activate(obs).argmax()
+      obs, rew, done, info = env.step(action)
+      score += rew
+    print(f"Score: {score}")
+    return score
+
+# RWG does not distinguish between populations and generations
+max_ninds = 1000
+# Neuroevolution loop
+for nind in range(max_ninds):
+    ind = np.random.randn(net.nweights)
+    net.set_weights(ind)
+    score = fitness(ind)
+    if score == 500:
+        print(f"Game solved in {nind} trials")
+        break
+
+# Replay winning individual
+fitness(ind, render=True)
+
+# You may want to drop into a console here to examine the results
+import IPython; IPython.embed()
 ```
-
-<!-- 
-Why .md instead of .rst? Because I don't want to get such an error ever again:
-
-```bash
-$ pipenv run twine check dist/*
-Checking distribution dist/tinynet.tar.gz: warning: `long_description_content_type` missing.  defaulting to `text/x-rst`.
-Failed
-The project's long_description has invalid markup which will not be rendered on PyPI. The following syntax errors were detected:
-line 7: Warning: Title underline too short.
-
-No training
-----------
-```
--->
