@@ -2,7 +2,6 @@
 build
 dist
 *.egg-info
-MANIFEST
 *.log
 *.patch
 *.diff
