@@ -34,6 +34,7 @@ The example below tackles the CartPole from scratch using RWG.
 import numpy as np
 import tinynet
 import gym # just `pip install gym`
+from time import sleep # slow down rendering
 
 # Environment setup
 env = gym.make("CartPole-v1")
@@ -59,22 +60,26 @@ def fitness(ind, render=False):
     obs = env.reset()
     score = 0
     done = False
+    net.set_weights(ind)
     while not done:
-      if render: env.render()
-      action = net.activate(obs).argmax()
-      obs, rew, done, info = env.step(action)
-      score += rew
+        if render:
+            env.render()
+            sleep(0.5)
+        action = net.activate(obs).argmax()
+        obs, rew, done, info = env.step(action)
+        score += rew
+    if render: env.render() # render last frame
     print(f"Score: {score}")
     return score
 
 # RWG does not distinguish between populations and generations
 max_ninds = 1000
-# Neuroevolution loop
+
+# Neuroevolution (RWG) loop
 for nind in range(max_ninds):
     ind = np.random.randn(net.nweights)
-    net.set_weights(ind)
     score = fitness(ind)
-    if score == 500:
+    if score >= 195:
         print(f"Game solved in {nind} trials")
         break
 
