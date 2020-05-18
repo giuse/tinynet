@@ -46,6 +46,7 @@ class FFNN:
         self.state.append(np.zeros(self.state_sizes[-1])) # last state is all act
 
     def set_weights(self, weights):
+        # TODO: this expects weights to have an attribute `size`, true for numpy but not list
         assert weights.size == self.nweights, "Wrong number of weights"
         if hasattr(self, 'weights'): del self.weights # preemptive GC call
         self.weights = []
