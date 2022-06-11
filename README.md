@@ -13,7 +13,7 @@ This library provides no training algorithm. You can easily set up a neuroevolut
 ## Usage
 
 ```python
-from tinynet import RNN1L
+from tinynet import RNN
 import numpy as np
 net_struct = [3, 5, 2]
 net = RNN(net_struct) # try also FFNN
