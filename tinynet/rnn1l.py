@@ -52,6 +52,7 @@ class RNN1L:
     def get_act(self):
         return self.state[self.act_idxs]
 
+    @property
     def nweights(self):
         return self.weights_matrix.size
 
